@@ -1,0 +1,64 @@
+{
+    // See https://go.microsoft.com/fwlink/?LinkId=733558
+    // for the documentation about the tasks.json format
+    "version": "2.0.0",
+    "tasks": [
+        {
+            "label": "build",
+            "type": "shell",
+            "command": "make",
+            "args": ["build"],
+            "group": {
+              "kind": "build",
+              "isDefault": true
+            },
+            "presentation": {
+                "reveal": "silent",
+                "panel": "dedicated",
+            }
+        },
+        {
+            "label": "clean",
+            "type": "shell",
+            "command": "make",
+            "args": ["clean"],
+            "presentation": {
+                "reveal": "silent",
+                "panel": "shared"
+            }
+        },
+        {
+            "label": "run",
+            "type": "shell",
+            "command": "make",
+            "args": ["run"],
+            "presentation": {
+                "reveal": "always",
+                "panel": "dedicated",
+                "group": "debug"
+            }
+        },
+        {
+            "label": "stop-run",
+            "type": "shell",
+            "command": "make",
+            "args": ["stop-run"],
+            "presentation": {
+                "reveal": "silent",
+                "panel": "shared"
+            }
+        },
+        // Task helpful for debugging, specific to this extension
+        {
+            "label": "watch",
+            "type": "shell",
+            "command": "make",
+            "args": ["watch"],
+            "presentation": {
+                "reveal": "always",
+                "panel": "dedicated",
+                "group": "debug"
+            }
+        },
+    ]
+}
