@@ -12,6 +12,7 @@ const Me = ExtensionUtils.getCurrentExtension();
 const NetworkManagerAppletOpenSignal = []; // [source, signalId]
 const WirelessDeviceOpenSignals = []; // Array of [source, signalId]
 const PowerManagementItems = [];
+const PowerManagementToggleSignal = []; // [source, signalId]
 
 const PowerManagementState = Object.freeze({
     UNSUPPORTED: Symbol('unsupported'),
@@ -79,7 +80,8 @@ function enable() {
 
                             separator = new PopupMenu.PopupSeparatorMenuItem();
                             powerManagementToggle = new PopupMenu.PopupSwitchMenuItem('Power Management', currentState);
-                            powerManagementToggle.connect('toggled', toggle => {
+                            PowerManagementToggleSignal[0] = powerManagementToggle;
+                            PowerManagementToggleSignal[1] = powerManagementToggle.connect('toggled', toggle => {
                                 log(`toggle.state: ${toggle._switch.state}`);
                                 GLib.spawn_command_line_sync(`bash -c "nmcli connection modify id "${connectionName}" 802-11-wireless.powersave ${toggle._switch.state ? '3' : '2'}"`);
                                 GLib.spawn_command_line_sync(`bash -c "nmcli connection down id "${connectionName}""`);
@@ -104,6 +106,7 @@ function enable() {
             while (WirelessDeviceOpenSignals.length > 0) {
                 const wirelessDeviceOpenSignal = WirelessDeviceOpenSignals.pop();
                 wirelessDeviceOpenSignal[0].disconnect(wirelessDeviceOpenSignal[1]);
+                wirelessDeviceOpenSignal[0] = null;
                 log(`disconnect wirelessDeviceOpenSignal ${wirelessDeviceOpenSignal[1]}`);
             }
 
@@ -166,6 +169,11 @@ function getPowerSaveState(connectionName) {
 }
 
 function destroyPowerManagementItems() {
+    if (PowerManagementToggleSignal[0]) {
+        PowerManagementToggleSignal[0].disconnect(PowerManagementToggleSignal[1]);
+        PowerManagementToggleSignal[0] = null;
+    }
+
     while (PowerManagementItems.length > 0) {
         const powerManagementItem = PowerManagementItems.pop();
         powerManagementItem.destroy();
