@@ -12,10 +12,18 @@ const Me = ExtensionUtils.getCurrentExtension();
 const NetworkManagerAppletOpenSignal = []; // [source, signalId]
 const WirelessDeviceOpenSignals = []; // Array of [source, signalId]
 const PowerManagementItems = [];
+
 const PowerManagementState = Object.freeze({
     UNSUPPORTED: Symbol('unsupported'),
     ENABLED: Symbol('enabled'),
     DISABLED: Symbol('disabled'),
+});
+
+const PowerSaveState = Object.freeze({
+    DEFAULT: 'default',
+    IGNORE: 'ignore',
+    DISABLE: 'disable',
+    ENABLE: 'enable',
 });
 
 function init() {
@@ -45,18 +53,37 @@ function enable() {
 
                         if (wirelessDeviceMenuOpen) {
                             const iface = wirelessDevice._device.get_iface();
-                            const currentState = getPowerManagementState(iface);
+                            const currentPowerManagementState = getPowerManagementState(iface);
 
-                            if (currentState === PowerManagementState.UNSUPPORTED) {
+                            if (currentPowerManagementState === PowerManagementState.UNSUPPORTED) {
                                 log(`${iface} does not support Power Management`);
                                 return;
                             }
 
+                            const connectionName = getConnectionName(iface);
+                            if (!connectionName) {
+                                log(`${iface} is not connected`);
+                                return;
+                            }
+
+                            // TODO Instead of not displaying the toggle if it's not supported or not connected, we should display it greyed out with a tooltip explaining why
+
+                            let currentState = currentPowerManagementState === PowerManagementState.ENABLED;
+
+                            // We override current state from iwconfig if the current connection has a specific powersave set
+                            const currentPowerSaveState = getPowerSaveState(connectionName);
+                            if (currentPowerSaveState === PowerSaveState.ENABLE)
+                                currentState = true;
+                            else if (currentPowerSaveState === PowerSaveState.DISABLE)
+                                currentState = false;
+
                             separator = new PopupMenu.PopupSeparatorMenuItem();
-                            powerManagementToggle = new PopupMenu.PopupSwitchMenuItem('Power Management', currentState === PowerManagementState.ENABLED);
+                            powerManagementToggle = new PopupMenu.PopupSwitchMenuItem('Power Management', currentState);
                             powerManagementToggle.connect('toggled', toggle => {
                                 log(`toggle.state: ${toggle._switch.state}`);
-                                GLib.spawn_command_line_sync(`bash -c "pkexec iwconfig ${iface} power ${toggle._switch.state ? 'on' : 'off'}"`);
+                                GLib.spawn_command_line_sync(`bash -c "nmcli connection modify id "${connectionName}" 802-11-wireless.powersave ${toggle._switch.state ? '3' : '2'}"`);
+                                GLib.spawn_command_line_sync(`bash -c "nmcli connection down id "${connectionName}""`);
+                                GLib.spawn_command_line_async(`bash -c "nmcli --wait 1 connection up id "${connectionName}""`);
                             });
 
                             wirelessDeviceMenu.addMenuItem(separator);
@@ -102,7 +129,7 @@ function getPowerManagementState(iface) {
     let [ok, out, err, exit] = GLib.spawn_command_line_sync(`bash -c "iwconfig ${iface} | grep 'Power Management'"`);
     if (out.length) {
         let powerManagementLine = ByteArray.toString(out);
-        log(`line: ${powerManagementLine}`);
+        log(`getPowerManagementState: ${powerManagementLine}`);
         if (powerManagementLine.endsWith(':on\n'))
             return PowerManagementState.ENABLED;
 
@@ -110,6 +137,32 @@ function getPowerManagementState(iface) {
     }
 
     return PowerManagementState.UNSUPPORTED;
+}
+
+function getConnectionName(iface) {
+    // eslint-disable-next-line no-unused-vars
+    let [ok, out, err, exit] = GLib.spawn_command_line_sync(`bash -c "nmcli -g GENERAL.CONNECTION device show ${iface}"`);
+    if (out.length) {
+        let connectionName = ByteArray.toString(out).trim();
+        log(`getConnectionName: ${connectionName}`);
+        return connectionName;
+    }
+
+    return '';
+}
+
+function getPowerSaveState(connectionName) {
+    if (connectionName) {
+        // eslint-disable-next-line no-unused-vars
+        let [ok, out, err, exit] = GLib.spawn_command_line_sync(`bash -c "nmcli -g 802-11-wireless.powersave connection show id "${connectionName}""`);
+        if (out.length) {
+            let powerSaveState = ByteArray.toString(out);
+            log(`getPowerSaveState: ${powerSaveState}`);
+            return powerSaveState;
+        }
+    }
+
+    return PowerSaveState.DEFAULT;
 }
 
 function destroyPowerManagementItems() {
