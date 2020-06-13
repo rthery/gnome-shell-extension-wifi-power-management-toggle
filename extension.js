@@ -43,7 +43,7 @@ function enable() {
                     const wirelessDeviceOpenSignalId = wirelessDevice.item.menu.connect('open-state-changed', (wirelessDeviceMenu, wirelessDeviceMenuOpen) => {
                         log(`${wirelessDevice._device.get_iface()}: ${wirelessDeviceMenuOpen}`);
 
-                        if (open) {
+                        if (wirelessDeviceMenuOpen) {
                             const iface = wirelessDevice._device.get_iface();
                             const currentState = getPowerManagementState(iface);
 
