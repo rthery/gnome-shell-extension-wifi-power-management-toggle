@@ -43,7 +43,3 @@ restart-shell:
 	else # Otherwise on Wayland for example we have no other choice than to log out and back in... \
 		gnome-session-quit --logout; \
 	fi
-
-# Target helpful for debugging, specific to this extension
-watch:
-	watch -c -d -n 1 -t 'iwconfig wlo1 | grep "Power Management"'
