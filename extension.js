@@ -77,9 +77,7 @@ function enable() {
                             powerManagementToggle = new PopupMenu.PopupSwitchMenuItem('Power Saving', currentState);
                             PowerManagementToggleSignal[0] = powerManagementToggle;
                             PowerManagementToggleSignal[1] = powerManagementToggle.connect('toggled', toggle => {
-                                GLib.spawn_command_line_sync(`bash -c "nmcli connection modify id "${connectionName}" 802-11-wireless.powersave ${toggle._switch.state ? '3' : '2'}"`);
-                                GLib.spawn_command_line_sync(`bash -c "nmcli connection down id "${connectionName}""`);
-                                GLib.spawn_command_line_async(`bash -c "nmcli --wait 1 connection up id "${connectionName}""`);
+                                GLib.spawn_command_line_async(`bash -c "nmcli connection modify id '${connectionName}' 802-11-wireless.powersave ${toggle._switch.state ? '3' : '2'} && nmcli connection down id '${connectionName}' && nmcli --wait 1 connection up id '${connectionName}'"`);
                             });
 
                             wirelessDeviceMenu.addMenuItem(separator);
@@ -144,7 +142,7 @@ function getConnectionName(iface) {
 function getPowerSaveState(connectionName) {
     if (connectionName) {
         // eslint-disable-next-line no-unused-vars
-        let [ok, out, err, exit] = GLib.spawn_command_line_sync(`bash -c "nmcli -g 802-11-wireless.powersave connection show id "${connectionName}""`);
+        let [ok, out, err, exit] = GLib.spawn_command_line_sync(`bash -c "nmcli -g 802-11-wireless.powersave connection show id '${connectionName}'"`);
         if (out.length) {
             let powerSaveState = ByteArray.toString(out);
             return powerSaveState;
