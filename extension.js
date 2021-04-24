@@ -74,7 +74,7 @@ function enable() {
                                 currentState = false;
 
                             separator = new PopupMenu.PopupSeparatorMenuItem();
-                            powerManagementToggle = new PopupMenu.PopupSwitchMenuItem('Power Management', currentState);
+                            powerManagementToggle = new PopupMenu.PopupSwitchMenuItem('Power Saving', currentState);
                             PowerManagementToggleSignal[0] = powerManagementToggle;
                             PowerManagementToggleSignal[1] = powerManagementToggle.connect('toggled', toggle => {
                                 GLib.spawn_command_line_sync(`bash -c "nmcli connection modify id "${connectionName}" 802-11-wireless.powersave ${toggle._switch.state ? '3' : '2'}"`);
