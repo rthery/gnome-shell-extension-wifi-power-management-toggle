@@ -16,7 +16,7 @@ build:
 	gnome-extensions pack --force
 
 clean:
-	rm -rf "$(UUID)".shell-extension.zip
+	rm -rf "$(UUID).shell-extension.zip"
 
 run: build install enable restart-shell listen
 
@@ -32,7 +32,7 @@ listen:
 	trap "make stop-run; exit 0" INT; journalctl -o cat -n 0 -f "$$(which gnome-shell)"
 
 install:
-	gnome-extensions install --force "$(UUID)".shell-extension.zip
+	gnome-extensions install --force "$(UUID).shell-extension.zip"
 
 uninstall:
 	gnome-extensions uninstall "$(UUID)" || true
