@@ -5,7 +5,6 @@ This is a Gnome Shell extension to add a button in the Wi-Fi section of the Syst
 
 ## Dependencies
 These dependencies should be already installed in most distributions
-* gnome-shell 3.36 (untested on previous version)
 * bash
 * iwconfig
 * nmcli
