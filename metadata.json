@@ -3,6 +3,6 @@
     "description": "Add a toggle to limit Wi-Fi power consumption (when supported by the card) in Gnome System Menu.",
     "uuid": "wifi-power-management-toggle@rthery",
     "shell-version": ["3.36", "3.38", "40", "41"],
-    "version": 1,
+    "version": 2,
     "url": "https://gitlab.com/rthery/gnome-shell-extension-wifi-power-management-toggle"
 }
