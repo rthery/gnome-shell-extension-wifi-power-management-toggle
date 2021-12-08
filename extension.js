@@ -124,6 +124,12 @@ function getPowerManagementState(iface) {
 
         return PowerManagementState.DISABLED;
     }
+    else if (err.length) {
+        let powerManagementLine = ByteArray.toString(err);
+        if (powerManagementLine.endsWith('command not found\n')) {
+            logWarn("Please install iwconfig for the extension to work")
+        }
+    }
 
     return PowerManagementState.UNSUPPORTED;
 }
@@ -166,4 +172,8 @@ function destroyPowerManagementItems() {
 
 function log(text) {
     global.log(`${Me.metadata.name}: [INFO] ${text}`);
+}
+
+function logWarn(text) {
+    global.log(`${Me.metadata.name}: [WARN] ${text}`);
 }
